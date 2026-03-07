@@ -285,8 +285,10 @@ td.td-act{vertical-align:middle;text-align:center;white-space:nowrap;min-width:7
           <div class="photo-overlay">✏️</div>
         </div>
         <div class="photo-label">Foto de Perfil</div>
-        <div class="photo-hint">Clique para escolher (opcional)</div>
-        <input type="file" id="r-photo-input" accept="image/*" onchange="previewPhoto(this)">
+        <div class="photo-hint">Clique no círculo ou no botão abaixo</div>
+        <input type="file" id="r-photo-input" accept="image/*" onchange="previewPhoto(this)" style="display:block;width:100%;opacity:0;height:0;overflow:hidden">
+        <button type="button" onclick="document.getElementById('r-photo-input').click()" style="background:var(--p3);color:var(--green);border:1.5px solid #b8f00044;border-radius:8px;padding:6px 18px;font-size:11px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:.5px;margin-top:2px">📁 ESCOLHER FOTO</button>
+        <div id="r-photo-name" style="font-size:10px;color:var(--gray);margin-top:3px;display:none"></div>
       </div>
       <div class="field"><label>Nome Completo</label><input id="r-nome" type="text" placeholder="Seu nome completo"></div>
       <div class="field"><label>Usuário</label><input id="r-user" type="text" placeholder="usuario_exemplo"></div>
@@ -445,14 +447,14 @@ let db = {
       {id:1,acao:'Comunicação Obrigatória',what:'Implantar comunicação formal de divergências.',why:'Evitar retrabalho.',where:'PCP + Almoxarifado',when:'Imediato',who:'João Rosalvo',how:'Padronizar mensagem diária.',howMuch:'Sem custo',status:25},
       {id:2,acao:'Centralização de OP',what:'PCP único responsável por OP.',why:'Eliminar conflito.',where:'Fluxo OP',when:'09/03/2026',who:'João Rosalvo',how:'Documentar e retirar controle paralelo.',howMuch:'Sem custo',status:50},
     ],gantt:[
-      {id:1,task:'Reunião de alinhamento',start:'2026-03-10',end:'2026-03-10',color:'#b8f000'},
-      {id:2,task:'Implantação da comunicação',start:'2026-03-11',end:'2026-03-20',color:'#38bdf8'},
+      {id:1,task:'Reunião de alinhamento',week:'S1',start:'2026-03-10',end:'2026-03-10',resp:'João Rosalvo',obs:'Presencial sala 2',status:100,color:'#b8f000'},
+      {id:2,task:'Implantação da comunicação',week:'S2',start:'2026-03-11',end:'2026-03-20',resp:'João Rosalvo',obs:'',status:25,color:'#38bdf8'},
     ]},
     {id:2,name:'Controle de Custos Q2',sc:'fin',rows:[
       {id:1,acao:'Revisão de Fornecedores',what:'Auditar contratos acima de R$10k.',why:'Reduzir custos em 15%.',where:'Financeiro',when:'30/03/2026',who:'Ana Lima',how:'Renegociar contratos.',howMuch:'10h analista',status:50},
     ],gantt:[
-      {id:1,task:'Levantamento de contratos',start:'2026-03-08',end:'2026-03-15',color:'#f59e0b'},
-      {id:2,task:'Reunião com fornecedores',start:'2026-03-18',end:'2026-03-25',color:'#a78bfa'},
+      {id:1,task:'Levantamento de contratos',week:'S1',start:'2026-03-08',end:'2026-03-15',resp:'Ana Lima',obs:'Contratos acima de R$10k',status:50,color:'#f59e0b'},
+      {id:2,task:'Reunião com fornecedores',week:'S3',start:'2026-03-18',end:'2026-03-25',resp:'Ana Lima',obs:'',status:0,color:'#a78bfa'},
     ]},
   ],
   nextProjId:3,nextRowId:20,nextGanttId:10,
@@ -473,6 +475,9 @@ function toggleSeniorField(){
 }
 function previewPhoto(input){
   if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  const nameEl=document.getElementById('r-photo-name');
+  if(nameEl){nameEl.textContent='✅ '+file.name;nameEl.style.display='block';}
   const reader=new FileReader();
   reader.onload=e=>{
     const img=document.getElementById('r-photo-img');
@@ -481,7 +486,7 @@ function previewPhoto(input){
     img.style.display='block';
     icon.style.display='none';
   };
-  reader.readAsDataURL(input.files[0]);
+  reader.readAsDataURL(file);
 }
 function doRegister(){
   const nome=v('r-nome'),user=v('r-user'),pass=v('r-pass'),pass2=v('r-pass2');
@@ -751,53 +756,13 @@ function buildLegend(){
 }
 
 // ══════════════════════════════════════════
-// GANTT / CRONOGRAMA
+// CRONOGRAMA (tabela estilo planilha)
 // ══════════════════════════════════════════
 const GANTT_COLORS=['#b8f000','#38bdf8','#f59e0b','#a78bfa','#4ade80','#ef4444','#fb923c'];
-const MONTHS=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const STATUS_CRON={0:{text:'#7fa8b8',label:'Não iniciado'},25:{text:'#f59e0b',label:'Iniciado'},50:{text:'#38bdf8',label:'Em andamento'},75:{text:'#a78bfa',label:'Avançado'},100:{text:'#b8f000',label:'Concluído'}};
 
 function renderGantt(p){
-  const today=new Date();
-  const baseDate=new Date(today.getFullYear(),today.getMonth()+session.ganttOffset,1);
-  const year=baseDate.getFullYear(),month=baseDate.getMonth();
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const periodLabel=MONTHS[month]+' '+year;
-
-  // Build day headers
-  let dayHeaders='';
-  for(let d=1;d<=daysInMonth;d++){
-    const isToday=d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
-    dayHeaders+=`<th style="min-width:32px;${isToday?'color:var(--danger);background:#ef444415':''}">${d}</th>`;
-  }
-
-  // Build rows
-  let rowsHTML='';
-  p.gantt.forEach(task=>{
-    const start=new Date(task.start+'T00:00:00');
-    const end=new Date(task.end+'T00:00:00');
-    let cells='';
-    for(let d=1;d<=daysInMonth;d++){
-      const cur=new Date(year,month,d);
-      const inRange=cur>=start&&cur<=end;
-      const isStart=cur.getTime()===start.getTime();
-      const isToday2=d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
-      cells+=`<td class="gantt-cell" style="${isToday2?'background:#ef444410':''}">
-        ${inRange?`<div class="gantt-bar" style="left:1px;right:1px;background:${task.color};${isStart?'border-radius:5px 0 0 5px':'border-radius:0'}">
-          ${isStart?'<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:9px">'+task.task+'</span>':''}
-        </div>`:''}
-      </td>`;
-    }
-    rowsHTML+=`<tr>
-      <td class="task-name" style="position:sticky;left:0;background:var(--p3);z-index:1;font-size:11px">
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="width:8px;height:8px;border-radius:50%;background:${task.color};flex-shrink:0"></span>
-          <span style="flex:1">${task.task}</span>
-          <button style="background:transparent;border:none;cursor:pointer;color:var(--danger);font-size:11px;padding:1px 3px" 
-            onclick="session.delGanttTarget={pid:${p.id},gid:${task.id}};openModal('modal-del-gantt')">✕</button>
-        </div>
-      </td>${cells}</tr>`;
-  });
-
+  session.ganttOffset=session.ganttOffset||0;
   document.getElementById('main-content').innerHTML=`<div class="fade-in">
     <div class="view-header">
       <button class="btn-back" onclick="showDashboard()">← Voltar</button>
@@ -809,60 +774,161 @@ function renderGantt(p){
     </div>
     <div class="gantt-wrap">
       <div class="gantt-toolbar">
-        <div class="gantt-title">📅 Cronograma Gantt</div>
-        <div class="gantt-nav">
-          <button class="gantt-nav-btn" onclick="session.ganttOffset--;openProject(${p.id},'gantt')">‹ Anterior</button>
-          <div class="gantt-period">${periodLabel}</div>
-          <button class="gantt-nav-btn" onclick="session.ganttOffset++;openProject(${p.id},'gantt')">Próximo ›</button>
-        </div>
+        <div class="gantt-title">📅 Cronograma de Atividades</div>
+        <button class="btn-primary" style="font-size:11px;padding:7px 16px" onclick="openAddCronForm(${p.id})">➕ Adicionar Item</button>
       </div>
-      <div class="gantt-body">
-        <table class="gantt-table">
-          <thead><tr><th class="task-col" style="position:sticky;left:0;background:var(--p3);z-index:2">Tarefa</th>${dayHeaders}</tr></thead>
-          <tbody>${rowsHTML}</tbody>
+      <div id="cron-progress-area" style="padding:12px 18px 0"></div>
+      <div style="overflow-x:auto">
+        <table style="border-collapse:collapse;width:100%;min-width:780px" id="cron-table">
+          <thead>
+            <tr style="background:#1a4a5c">
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:42px">#</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:left;border-right:1px solid #b8f00018;min-width:200px">DESCRIÇÃO</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:60px">SEMANA</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:100px">PRAZO INICIAL</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:100px">PRAZO FINAL</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:130px">STATUS</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;border-right:1px solid #b8f00018;width:110px">RESPONSÁVEL</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:left;border-right:1px solid #b8f00018;min-width:130px">OBSERVAÇÃO</th>
+              <th style="padding:10px 9px;color:#b8f000;font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;letter-spacing:.5px;text-align:center;width:46px"></th>
+            </tr>
+          </thead>
+          <tbody id="cron-tbody"></tbody>
         </table>
       </div>
-      <div class="gantt-add-btn">
-        <button class="btn-primary" style="font-size:11px;padding:7px 14px" onclick="toggleGanttForm(${p.id})">➕ Adicionar Tarefa</button>
-      </div>
       <div class="gantt-add-form" id="gantt-form-${p.id}">
-        <div class="gantt-field" style="flex:2"><label>Nome da Tarefa</label><input id="gf-task" placeholder="Ex: Reunião de kick-off"></div>
-        <div class="gantt-field"><label>Data Início</label><input id="gf-start" type="date" value="${today.toISOString().split('T')[0]}"></div>
-        <div class="gantt-field"><label>Data Fim</label><input id="gf-end" type="date" value="${today.toISOString().split('T')[0]}"></div>
-        <div class="gantt-field" style="min-width:100px"><label>Cor</label>
-          <select id="gf-color">${GANTT_COLORS.map((c,i)=>`<option value="${c}" ${i===0?'selected':''}>${c}</option>`).join('')}</select>
-        </div>
+        <div class="gantt-field" style="flex:2"><label>Descrição</label><input id="gf-task" placeholder="Ex: Reunião de kick-off"></div>
+        <div class="gantt-field" style="min-width:80px"><label>Semana</label><input id="gf-week" placeholder="Ex: S1" style="width:80px"></div>
+        <div class="gantt-field"><label>Prazo Inicial</label><input id="gf-start" type="date"></div>
+        <div class="gantt-field"><label>Prazo Final</label><input id="gf-end" type="date"></div>
+        <div class="gantt-field"><label>Responsável</label><input id="gf-resp" placeholder="Nome"></div>
+        <div class="gantt-field"><label>Observação</label><input id="gf-obs" placeholder="Opcional"></div>
         <div class="gantt-field" style="justify-content:flex-end;min-width:auto">
           <label style="opacity:0">.</label>
-          <button class="btn-primary" onclick="addGanttTask(${p.id})">Salvar</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn-secondary" onclick="closeAddCronForm(${p.id})">Cancelar</button>
+            <button class="btn-primary" onclick="addCronTask(${p.id})">Salvar</button>
+          </div>
         </div>
       </div>
     </div>
   </div>`;
+  renderCronRows(p);
 }
 
-function toggleGanttForm(pid){
-  const f=document.getElementById('gantt-form-'+pid);
-  f.classList.toggle('open');
+function calcCronProgress(p){
+  if(!p.gantt||!p.gantt.length)return 0;
+  const s=p.gantt.reduce((a,g)=>a+(g.status||0),0);
+  return Math.round(s/p.gantt.length);
 }
-function addGanttTask(pid){
+
+function renderCronRows(p){
+  const tbody=document.getElementById('cron-tbody');
+  if(!tbody)return;
+  const avg=calcCronProgress(p);
+  // update progress bar
+  const pa=document.getElementById('cron-progress-area');
+  if(pa){
+    const barColor=avg===100?'#b8f000':avg>=75?'#a78bfa':avg>=50?'#38bdf8':avg>=25?'#f59e0b':'#7fa8b8';
+    pa.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;font-family:Montserrat,sans-serif;color:#c8dde5;white-space:nowrap">Progresso Geral: <span style="color:${barColor}">${avg}%</span></span>
+        <div style="flex:1;background:#ffffff0d;border-radius:99px;height:8px;overflow:hidden">
+          <div style="width:${avg}%;height:100%;background:linear-gradient(90deg,${barColor},${barColor}cc);border-radius:99px;box-shadow:0 0 8px ${barColor}88;transition:width .5s"></div>
+        </div>
+      </div>`;
+  }
+  tbody.innerHTML='';
+  (p.gantt||[]).forEach((row,i)=>{
+    const stColor=STATUS_CRON[row.status||0].text;
+    const stLabel=STATUS_CRON[row.status||0].label;
+    const tr=document.createElement('tr');
+    tr.style.cssText='border-bottom:1px solid #b8f00010;'+(i%2===0?'background:#0a2030':'background:#0f2d42');
+    tr.innerHTML=`
+      <td style="padding:8px 9px;text-align:center;font-size:11px;color:#b8f000;font-weight:700;border-right:1px solid #b8f00010">${i+1}</td>
+      <td style="padding:8px 9px;font-size:11px;color:#e2eef5;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'task')">${row.task||''}</td>
+      <td style="padding:8px 9px;text-align:center;font-size:11px;color:#c8dde5;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'week')">${row.week||''}</td>
+      <td style="padding:8px 9px;text-align:center;font-size:11px;color:#c8dde5;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'start')">${row.start||''}</td>
+      <td style="padding:8px 9px;text-align:center;font-size:11px;color:#c8dde5;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'end')">${row.end||''}</td>
+      <td style="padding:6px 9px;text-align:center;border-right:1px solid #b8f00010">
+        <select onchange="updateCronStatus(${p.id},${row.id},this.value)" style="background:#061520;border:1.5px solid ${stColor};border-radius:6px;color:${stColor};font-size:10px;font-weight:700;padding:3px 5px;width:100%;cursor:pointer;font-family:Montserrat,sans-serif;outline:none">
+          ${[0,25,50,75,100].map(v=>`<option value="${v}" ${(row.status||0)===v?'selected':''}>${v}% — ${STATUS_CRON[v].label}</option>`).join('')}
+        </select>
+        <div style="margin-top:3px;background:#ffffff0d;border-radius:99px;height:3px;overflow:hidden">
+          <div style="width:${row.status||0}%;height:100%;background:${stColor};border-radius:99px"></div>
+        </div>
+      </td>
+      <td style="padding:8px 9px;text-align:center;font-size:11px;color:#c8dde5;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'resp')">${row.resp||''}</td>
+      <td style="padding:8px 9px;font-size:11px;color:#7fa8b8;border-right:1px solid #b8f00010;cursor:text" onclick="editCronCell(this,${p.id},${row.id},'obs')">${row.obs||''}</td>
+      <td style="padding:6px 9px;text-align:center">
+        <button onclick="session.delGanttTarget={pid:${p.id},gid:${row.id}};openModal('modal-del-gantt')" style="background:#1a0000;color:#ef4444;border:1px solid #ef444433;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px">🗑️</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  // empty state
+  if(!p.gantt||!p.gantt.length){
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:30px;color:#7fa8b8;font-size:12px">Nenhuma tarefa cadastrada. Clique em "➕ Adicionar Item" para começar.</td></tr>`;
+  }
+}
+
+function editCronCell(td,pid,gid,field){
+  const p=db.projects.find(x=>x.id===pid);
+  const row=p&&p.gantt&&p.gantt.find(g=>g.id===gid);
+  if(!row)return;
+  const cur=row[field]||'';
+  const inp=document.createElement(field==='task'||field==='obs'?'textarea':'input');
+  inp.value=cur;
+  inp.style.cssText='width:100%;background:#061520;color:#b8f000;border:1.5px solid #b8f000;border-radius:4px;padding:3px 5px;font-size:11px;outline:none;font-family:Inter,sans-serif;resize:none';
+  if(field==='start'||field==='end')inp.type='date';
+  td.textContent='';td.appendChild(inp);inp.focus();
+  const save=()=>{row[field]=inp.value;renderCronRows(p);};
+  inp.onblur=save;
+  inp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();save();}};
+}
+
+function updateCronStatus(pid,gid,val){
+  const p=db.projects.find(x=>x.id===pid);
+  const row=p&&p.gantt&&p.gantt.find(g=>g.id===gid);
+  if(row){row.status=Number(val);renderCronRows(p);}
+}
+
+function openAddCronForm(pid){
+  const f=document.getElementById('gantt-form-'+pid);
+  if(f){f.classList.add('open');f.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+function closeAddCronForm(pid){
+  const f=document.getElementById('gantt-form-'+pid);
+  if(f)f.classList.remove('open');
+}
+
+function addCronTask(pid){
   const p=db.projects.find(x=>x.id===pid);if(!p)return;
   const task=document.getElementById('gf-task').value.trim();
-  const start=document.getElementById('gf-start').value;
-  const end=document.getElementById('gf-end').value;
-  const color=document.getElementById('gf-color').value;
-  if(!task||!start||!end)return;
-  p.gantt.push({id:db.nextGanttId++,task,start,end,color});
-  openProject(pid,'gantt');
+  if(!task)return;
+  p.gantt.push({
+    id:db.nextGanttId++,
+    task,
+    week:document.getElementById('gf-week').value.trim(),
+    start:document.getElementById('gf-start').value,
+    end:document.getElementById('gf-end').value,
+    resp:document.getElementById('gf-resp').value.trim(),
+    obs:document.getElementById('gf-obs').value.trim(),
+    status:0,
+    color:GANTT_COLORS[p.gantt.length%GANTT_COLORS.length]
+  });
+  closeAddCronForm(pid);
+  renderGantt(p);
 }
+
 function confirmDelGantt(){
   if(!session.delGanttTarget)return;
   const {pid,gid}=session.delGanttTarget;
   const p=db.projects.find(x=>x.id===pid);
   if(p)p.gantt=p.gantt.filter(g=>g.id!==gid);
   closeModal('modal-del-gantt');
-  openProject(pid,'gantt');
+  renderGantt(p);
 }
+
 
 // ══════════════════════════════════════════
 // HELPERS
