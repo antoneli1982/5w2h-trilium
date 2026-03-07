@@ -23,6 +23,27 @@ body{font-family:'Inter',sans-serif;background:var(--p4);min-height:100vh;color:
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex}
 
+
+.photo-upload-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:18px}
+.photo-preview{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--p3);border:2.5px dashed #b8f00044;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;cursor:pointer;overflow:hidden;
+  transition:border-color .2s;position:relative;
+}
+.photo-preview:hover{border-color:var(--green)}
+.photo-preview img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.photo-preview .photo-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);
+  border-radius:50%;display:none;align-items:center;
+  justify-content:center;font-size:18px;
+}
+.photo-preview:hover .photo-overlay{display:flex}
+.photo-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.photo-hint{font-size:10px;color:var(--gray);opacity:.6}
+#r-photo-input{display:none}
+
 /* ── REGISTER / LOGIN SCREENS ── */
 #screen-register,#screen-login{
   align-items:center;justify-content:center;flex-direction:column;
@@ -257,6 +278,16 @@ td.td-act{vertical-align:middle;text-align:center;white-space:nowrap;min-width:7
       <button class="auth-tab" onclick="switchAuthTab('login')">Login</button>
     </div>
     <div id="register-form">
+      <div class="photo-upload-wrap">
+        <div class="photo-preview" onclick="document.getElementById('r-photo-input').click()" title="Clique para adicionar foto">
+          <span id="r-photo-icon">📷</span>
+          <img id="r-photo-img" src="" alt="" style="display:none">
+          <div class="photo-overlay">✏️</div>
+        </div>
+        <div class="photo-label">Foto de Perfil</div>
+        <div class="photo-hint">Clique para escolher (opcional)</div>
+        <input type="file" id="r-photo-input" accept="image/*" onchange="previewPhoto(this)">
+      </div>
       <div class="field"><label>Nome Completo</label><input id="r-nome" type="text" placeholder="Seu nome completo"></div>
       <div class="field"><label>Usuário</label><input id="r-user" type="text" placeholder="usuario_exemplo"></div>
       <div class="field"><label>Senha</label><input id="r-pass" type="password" placeholder="Mínimo 4 caracteres"></div>
@@ -440,6 +471,18 @@ function toggleSeniorField(){
   document.getElementById('senior-special-field').style.display=chk?'block':'none';
   document.getElementById('senior-note').style.display=chk?'block':'none';
 }
+function previewPhoto(input){
+  if(!input.files||!input.files[0])return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=document.getElementById('r-photo-img');
+    const icon=document.getElementById('r-photo-icon');
+    img.src=e.target.result;
+    img.style.display='block';
+    icon.style.display='none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
 function doRegister(){
   const nome=v('r-nome'),user=v('r-user'),pass=v('r-pass'),pass2=v('r-pass2');
   const role=document.getElementById('r-role').value;
@@ -454,7 +497,9 @@ function doRegister(){
   if(db.users.find(u=>u.user===user)){showErr(err,'Usuário já existe. Escolha outro.');return;}
   if(isSenior&&special!==SENIOR_KEY){showErr(err,'Senha especial sênior incorreta.');return;}
   const finalRole=isSenior?'senior':role;
-  db.users.push({nome,user,pass,role:finalRole});
+  const photo = document.getElementById('r-photo-img').src;
+  const hasPhoto = photo && photo.startsWith('data:');
+  db.users.push({nome,user,pass,role:finalRole,photo:hasPhoto?photo:null});
   ok.textContent='✅ Conta criada com sucesso! Faça seu login.';
   ok.style.display='block';
   setTimeout(()=>switchAuthTab('login'),1800);
@@ -469,8 +514,12 @@ function doLogin(){
   session.dashSc=found.role==='fin'?'fin':'op';
   // update sidebar
   const av=document.getElementById('s-avatar');
-  av.textContent=found.nome.charAt(0).toUpperCase();
   av.className='user-avatar'+(found.role==='senior'?' senior':found.role==='fin'?' fin':'');
+  if(found.photo){
+    av.innerHTML=`<img src="${found.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  } else {
+    av.textContent=found.nome.charAt(0).toUpperCase();
+  }
   document.getElementById('s-name').textContent=found.nome;
   const roleEl=document.getElementById('s-role');
   roleEl.textContent=found.role==='senior'?'👑 Sênior':found.role==='fin'?'💰 Financeiro':'🔵 Operacional';
