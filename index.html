@@ -358,7 +358,15 @@ td.td-act{vertical-align:middle;text-align:center;white-space:nowrap;min-width:7
       <div class="sidebar-section" style="padding-left:0;margin-top:6px">Projetos</div>
       <div id="sidebar-projs"></div>
     </div>
-    <div class="sidebar-footer"><button class="btn-logout" onclick="doLogout()">⏻ Sair</button></div>
+    <div class="sidebar-footer">
+      <div id="sidebar-senior-btn" style="display:none;margin-bottom:8px">
+        <button onclick="openSeniorPanel()" style="width:100%;background:#2a1f00;color:var(--warn);border:1px solid #f59e0b44;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:.3px;position:relative" id="senior-panel-btn">
+          👑 Painel Sênior
+          <span id="pending-badge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border-radius:99px;width:18px;height:18px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif"></span>
+        </button>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⏻ Sair</button>
+    </div>
   </aside>
   <main class="main">
     <div class="topbar">
@@ -441,16 +449,16 @@ const STATUS = {
 const FIELDS = ['acao','what','why','where','when','who','how','howMuch'];
 
 let db = {
-  users:[{nome:'Admin Sênior',user:'admin',pass:'admin123',role:'senior'}],
+  users:[{nome:'Admin Sênior',user:'admin',pass:'admin123',role:'senior',status:'approved',photo:null,allowedProjects:'all'}],
   projects:[
-    {id:1,name:'Comunicação e Fluxo',sc:'op',rows:[
+    {id:1,name:'Comunicação e Fluxo',sc:'op',allowedUsers:'all',rows:[
       {id:1,acao:'Comunicação Obrigatória',what:'Implantar comunicação formal de divergências.',why:'Evitar retrabalho.',where:'PCP + Almoxarifado',when:'Imediato',who:'João Rosalvo',how:'Padronizar mensagem diária.',howMuch:'Sem custo',status:25},
       {id:2,acao:'Centralização de OP',what:'PCP único responsável por OP.',why:'Eliminar conflito.',where:'Fluxo OP',when:'09/03/2026',who:'João Rosalvo',how:'Documentar e retirar controle paralelo.',howMuch:'Sem custo',status:50},
     ],gantt:[
       {id:1,task:'Reunião de alinhamento',week:'S1',start:'2026-03-10',end:'2026-03-10',resp:'João Rosalvo',obs:'Presencial sala 2',status:100,color:'#b8f000'},
       {id:2,task:'Implantação da comunicação',week:'S2',start:'2026-03-11',end:'2026-03-20',resp:'João Rosalvo',obs:'',status:25,color:'#38bdf8'},
     ]},
-    {id:2,name:'Controle de Custos Q2',sc:'fin',rows:[
+    {id:2,name:'Controle de Custos Q2',sc:'fin',allowedUsers:'all',rows:[
       {id:1,acao:'Revisão de Fornecedores',what:'Auditar contratos acima de R$10k.',why:'Reduzir custos em 15%.',where:'Financeiro',when:'30/03/2026',who:'Ana Lima',how:'Renegociar contratos.',howMuch:'10h analista',status:50},
     ],gantt:[
       {id:1,task:'Levantamento de contratos',week:'S1',start:'2026-03-08',end:'2026-03-15',resp:'Ana Lima',obs:'Contratos acima de R$10k',status:50,color:'#f59e0b'},
@@ -504,8 +512,9 @@ function doRegister(){
   const finalRole=isSenior?'senior':role;
   const photo = document.getElementById('r-photo-img').src;
   const hasPhoto = photo && photo.startsWith('data:');
-  db.users.push({nome,user,pass,role:finalRole,photo:hasPhoto?photo:null});
-  ok.textContent='✅ Conta criada com sucesso! Faça seu login.';
+  const newStatus = finalRole==='senior'?'approved':'pending';
+  db.users.push({nome,user,pass,role:finalRole,photo:hasPhoto?photo:null,status:newStatus,allowedProjects:'none'});
+  ok.textContent=finalRole==='senior'?'✅ Conta Sênior criada! Faça seu login.':'✅ Cadastro realizado! Aguarde aprovação de um Sênior para acessar.';
   ok.style.display='block';
   setTimeout(()=>switchAuthTab('login'),1800);
 }
@@ -515,6 +524,8 @@ function doLogin(){
   err.style.display='none';
   const found=db.users.find(u=>u.user===user&&u.pass===pass);
   if(!found){showErr(err,'Usuário ou senha incorretos.');return;}
+  if(found.status==='pending'){showErr(err,'⏳ Sua conta aguarda aprovação de um Sênior. Tente novamente mais tarde.');return;}
+  if(found.status==='rejected'){showErr(err,'❌ Acesso negado. Conta reprovada. Entre em contato com um Sênior.');return;}
   session.user=found;
   session.dashSc=found.role==='fin'?'fin':'op';
   // update sidebar
@@ -530,6 +541,10 @@ function doLogin(){
   roleEl.textContent=found.role==='senior'?'👑 Sênior':found.role==='fin'?'💰 Financeiro':'🔵 Operacional';
   roleEl.className='user-role role-'+found.role;
   showScreen('screen-app');
+  // Show senior panel button if senior
+  const seniorBtn=document.getElementById('sidebar-senior-btn');
+  if(seniorBtn)seniorBtn.style.display=found.role==='senior'?'block':'none';
+  if(found.role==='senior')updatePendingBadge();
   showDashboard();
 }
 function doLogout(){session.user=null;showScreen('screen-login');document.getElementById('l-user').value='';document.getElementById('l-pass').value='';}
@@ -540,11 +555,28 @@ function doLogout(){session.user=null;showScreen('screen-login');document.getEle
 function visibleProjects(){
   if(!session.user)return[];
   if(session.user.role==='senior')return db.projects;
-  return db.projects.filter(p=>p.sc===session.user.role);
+  const u=session.user;
+  // filter by scenario first
+  let projs=db.projects.filter(p=>p.sc===u.role);
+  // then filter by allowedUsers on each project
+  projs=projs.filter(p=>{
+    if(p.allowedUsers==='all')return true;
+    if(!p.allowedUsers||p.allowedUsers==='none')return false;
+    if(Array.isArray(p.allowedUsers))return p.allowedUsers.includes(u.user);
+    return false;
+  });
+  return projs;
 }
 function visibleBySc(sc){
   if(session.user.role==='senior')return db.projects.filter(p=>p.sc===sc);
-  return db.projects.filter(p=>p.sc===session.user.role&&p.sc===sc);
+  const u=session.user;
+  return db.projects.filter(p=>{
+    if(p.sc!==sc||p.sc!==u.role)return false;
+    if(p.allowedUsers==='all')return true;
+    if(!p.allowedUsers||p.allowedUsers==='none')return false;
+    if(Array.isArray(p.allowedUsers))return p.allowedUsers.includes(u.user);
+    return false;
+  });
 }
 
 // ══════════════════════════════════════════
@@ -627,7 +659,10 @@ function renderSidebar(){
 function createProject(){
   const name=v('np-name').trim(),sc=document.getElementById('np-sc').value;
   if(!name)return;
-  db.projects.push({id:db.nextProjId++,name,sc,rows:[],gantt:[]});
+  const creator=session.user;
+  // Senior-created: all; others: only themselves for now (senior can grant access)
+  const allowedUsers=creator.role==='senior'?'all':[creator.user];
+  db.projects.push({id:db.nextProjId++,name,sc,rows:[],gantt:[],allowedUsers,createdBy:creator.user});
   closeModal('modal-new-proj');
   document.getElementById('np-name').value='';
   showDashboard();
@@ -930,6 +965,151 @@ function confirmDelGantt(){
 }
 
 
+
+// ══════════════════════════════════════════
+// SENIOR PANEL
+// ══════════════════════════════════════════
+function openSeniorPanel(){
+  spShowTab('users');
+  openModal('modal-senior-panel');
+}
+
+function updatePendingBadge(){
+  const pending=db.users.filter(u=>u.status==='pending');
+  const badge=document.getElementById('pending-badge');
+  if(badge){
+    if(pending.length>0){
+      badge.textContent=pending.length;
+      badge.style.display='flex';
+    } else {
+      badge.style.display='none';
+    }
+  }
+}
+
+function spShowTab(tab){
+  ['users','approved','projects'].forEach(t=>{
+    document.getElementById('sp-panel-'+t).style.display=t===tab?'block':'none';
+    const btn=document.getElementById('sp-tab-'+t);
+    if(btn){btn.classList.toggle('active',t===tab);}
+  });
+  if(tab==='users')spRenderPending();
+  if(tab==='approved')spRenderApproved();
+  if(tab==='projects')spRenderProjects();
+}
+
+function spRenderPending(){
+  const el=document.getElementById('sp-pending-list');
+  const pending=db.users.filter(u=>u.status==='pending');
+  if(!pending.length){
+    el.innerHTML='<div style="text-align:center;padding:28px;color:var(--gray);font-size:12px">✅ Nenhum usuário aguardando aprovação.</div>';
+    return;
+  }
+  el.innerHTML=pending.map(u=>`
+    <div style="background:var(--p3);border:1px solid #f59e0b33;border-radius:10px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:50%;background:#2a1f00;border:2px solid var(--warn);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--warn);flex-shrink:0">${u.nome.charAt(0).toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:#fff">${u.nome}</div>
+        <div style="font-size:10px;color:var(--gray)">@${u.user} · ${u.role==='op'?'🔵 Operacional':'💰 Financeiro'} · <span style="color:var(--warn)">⏳ Aguardando</span></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="approveUser('${u.user}')" style="background:#0f2a0f;color:#4ade80;border:1px solid #4ade8044;border-radius:7px;padding:6px 13px;font-size:11px;font-weight:700;cursor:pointer">✅ Aprovar</button>
+        <button onclick="rejectUser('${u.user}')" style="background:#1a0000;color:var(--danger);border:1px solid #ef444433;border-radius:7px;padding:6px 13px;font-size:11px;font-weight:700;cursor:pointer">❌ Reprovar</button>
+      </div>
+    </div>`).join('');
+}
+
+function spRenderApproved(){
+  const el=document.getElementById('sp-approved-list');
+  const approved=db.users.filter(u=>u.status==='approved'&&u.role!=='senior');
+  if(!approved.length){
+    el.innerHTML='<div style="text-align:center;padding:28px;color:var(--gray);font-size:12px">Nenhum usuário aprovado ainda.</div>';
+    return;
+  }
+  el.innerHTML=approved.map(u=>`
+    <div style="background:var(--p3);border:1px solid #b8f00018;border-radius:10px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--p2);border:2px solid ${u.role==='op'?'var(--sky)':'var(--warn)'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${u.role==='op'?'var(--sky)':'var(--warn)'};flex-shrink:0;overflow:hidden">
+        ${u.photo?`<img src="${u.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:u.nome.charAt(0).toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:#fff">${u.nome}</div>
+        <div style="font-size:10px;color:var(--gray)">@${u.user} · ${u.role==='op'?'🔵 Operacional':'💰 Financeiro'} · <span style="color:#4ade80">✅ Aprovado</span></div>
+      </div>
+      <button onclick="rejectUser('${u.user}',true)" style="background:#1a0000;color:var(--danger);border:1px solid #ef444433;border-radius:7px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer" title="Revogar acesso">🚫 Revogar</button>
+    </div>`).join('');
+}
+
+function spRenderProjects(){
+  const el=document.getElementById('sp-projects-list');
+  const users=db.users.filter(u=>u.status==='approved'&&u.role!=='senior');
+  const projs=db.projects;
+  if(!users.length){
+    el.innerHTML='<div style="text-align:center;padding:28px;color:var(--gray);font-size:12px">Nenhum usuário aprovado para configurar acesso.</div>';
+    return;
+  }
+  el.innerHTML=projs.map(p=>{
+    const relevantUsers=users.filter(u=>u.role===p.sc);
+    if(!relevantUsers.length)return `
+      <div style="background:var(--p3);border:1px solid #b8f00015;border-radius:10px;padding:13px 15px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:4px">${p.sc==='fin'?'💰':'🔵'} ${p.name}</div>
+        <div style="font-size:11px;color:var(--gray)">Nenhum usuário ${p.sc==='op'?'operacional':'financeiro'} aprovado.</div>
+      </div>`;
+    return `
+      <div style="background:var(--p3);border:1px solid #b8f00018;border-radius:10px;padding:13px 15px;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;font-family:Montserrat,sans-serif">${p.sc==='fin'?'💰':'🔵'} ${p.name}</div>
+        ${relevantUsers.map(u=>{
+          const hasAccess=p.allowedUsers==='all'||(Array.isArray(p.allowedUsers)&&p.allowedUsers.includes(u.user));
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #b8f00010">
+            <div style="font-size:11px;color:var(--gray2)">
+              <span style="font-weight:600;color:#fff">@${u.user}</span> — ${u.nome}
+            </div>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
+              <span style="font-size:10px;color:${hasAccess?'#4ade80':'var(--danger)'}">
+                ${hasAccess?'✅ Com acesso':'❌ Sem acesso'}
+              </span>
+              <div onclick="toggleProjectAccess(${p.id},'${u.user}')" style="width:38px;height:20px;border-radius:99px;background:${hasAccess?'var(--green)':'var(--p1)'};border:1.5px solid ${hasAccess?'var(--green)':'#b8f00030'};position:relative;cursor:pointer;transition:background .2s">
+                <div style="width:14px;height:14px;border-radius:50%;background:#fff;position:absolute;top:2px;left:${hasAccess?'20px':'2px'};transition:left .2s"></div>
+              </div>
+            </label>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+}
+
+function approveUser(username){
+  const u=db.users.find(x=>x.user===username);
+  if(u){u.status='approved';}
+  updatePendingBadge();
+  spRenderPending();
+}
+
+function rejectUser(username, fromApproved=false){
+  const u=db.users.find(x=>x.user===username);
+  if(u){u.status='rejected';}
+  updatePendingBadge();
+  if(fromApproved)spRenderApproved(); else spRenderPending();
+}
+
+function toggleProjectAccess(pid, username){
+  const p=db.projects.find(x=>x.id===pid);
+  if(!p)return;
+  if(p.allowedUsers==='all'){
+    // convert to array of all current approved users except this one
+    const allApproved=db.users.filter(u=>u.status==='approved'&&u.role!=='senior'&&u.role===p.sc).map(u=>u.user);
+    p.allowedUsers=allApproved.filter(u=>u!==username);
+  } else if(p.allowedUsers==='none'||!p.allowedUsers){
+    p.allowedUsers=[username];
+  } else if(Array.isArray(p.allowedUsers)){
+    if(p.allowedUsers.includes(username)){
+      p.allowedUsers=p.allowedUsers.filter(u=>u!==username);
+    } else {
+      p.allowedUsers=[...p.allowedUsers,username];
+    }
+  }
+  spRenderProjects();
+}
+
 // ══════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════
@@ -940,5 +1120,41 @@ function closeModal(id){document.getElementById(id).classList.remove('active')}
 function v(id){return document.getElementById(id).value.trim()}
 function showErr(el,msg){el.textContent=msg;el.style.display='block'}
 </script>
+
+<!-- ══ MODAL: PAINEL SÊNIOR ══ -->
+<div class="modal-overlay" id="modal-senior-panel" style="z-index:300">
+  <div class="modal" style="max-width:660px;width:96%;max-height:88vh;overflow-y:auto;padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div>
+        <div class="modal-title" style="margin-bottom:2px">👑 Painel Sênior</div>
+        <div style="font-size:11px;color:var(--gray)">Gerencie usuários e acesso a projetos</div>
+      </div>
+      <button onclick="closeModal('modal-senior-panel')" style="background:var(--p3);border:1px solid #b8f00020;color:var(--gray);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px">✕</button>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;gap:0;border-radius:10px;overflow:hidden;border:1px solid #b8f00022;margin-bottom:18px">
+      <button id="sp-tab-users" class="view-tab active" onclick="spShowTab('users')" style="flex:1">👤 Usuários Pendentes</button>
+      <button id="sp-tab-approved" class="view-tab" onclick="spShowTab('approved')" style="flex:1">✅ Aprovados</button>
+      <button id="sp-tab-projects" class="view-tab" onclick="spShowTab('projects')" style="flex:1">📁 Acesso a Projetos</button>
+    </div>
+
+    <!-- TAB: PENDING USERS -->
+    <div id="sp-panel-users">
+      <div id="sp-pending-list"></div>
+    </div>
+
+    <!-- TAB: APPROVED USERS -->
+    <div id="sp-panel-approved" style="display:none">
+      <div id="sp-approved-list"></div>
+    </div>
+
+    <!-- TAB: PROJECT ACCESS -->
+    <div id="sp-panel-projects" style="display:none">
+      <div id="sp-projects-list"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
