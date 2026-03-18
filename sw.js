@@ -1,16 +1,18 @@
-// SW v20 — sem cache de HTML, sempre busca da rede
-const CACHE = 'v20';
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))));
+self.addEventListener('install', function(e) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(key) {
+        return caches.delete(key);
+      }));
+    })
+  );
   self.clients.claim();
 });
-self.addEventListener('fetch', e => {
-  // Nunca cacheia — sempre vai à rede
-  // Em offline usa cache como fallback
-  const req = e.request;
-  if(req.method !== 'GET') return;
-  e.respondWith(
-    fetch(req).catch(() => caches.match(req))
-  );
+
+self.addEventListener('fetch', function(e) {
+  e.respondWith(fetch(e.request));
 });
