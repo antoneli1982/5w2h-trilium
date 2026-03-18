@@ -422,7 +422,21 @@ td.td-act{vertical-align:middle;text-align:center;white-space:nowrap;min-width:7
 @media(max-width:420px){
   .projects-grid{grid-template-columns:1fr !important}
 }
-.logo-uni-main{display:block;flex-shrink:0}
+/* ── TELA CHEIA CRONOGRAMA ── */
+body.cron-fullscreen .sidebar{display:none!important}
+body.cron-fullscreen .topbar{
+  position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:var(--p2);border-bottom:1px solid #b8f00020;
+  display:flex!important;align-items:center;padding:6px 14px;gap:8px;
+}
+body.cron-fullscreen .main{
+  position:fixed;inset:0;z-index:9998;overflow-y:auto;
+  background:var(--p4);padding-top:46px;
+}
+body.cron-fullscreen #btn-cron-fs{
+  background:#b8f000!important;color:#061520!important;
+  border-color:#b8f000!important;
+}
 
 /* ══ DRAWER SUB-PROJETOS ══ */
 #spd-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:599;display:none;backdrop-filter:blur(3px)}
@@ -5045,37 +5059,54 @@ function cronScrollTop(){
   const el=_getScrollEl();el.scrollTo({top:0,behavior:'smooth'});el.scrollTop=0;
 }
 function cronAddFromTopbar(){
-  // funciona tanto para cronograma principal quanto sub
+  // Detecta se o sub-cronograma está ativo pelo tbody visível
+  const subTbody=document.getElementById('sub-cron-tbody');
   const subForm=document.getElementById('sub-gantt-form');
-  if(subForm&&document.getElementById('sub-cron-tbody')){
-    cronScrollTop();
-    setTimeout(()=>{subForm.classList.add('open');const t=document.getElementById('scf-task');if(t)t.focus();},250);
+  if(subTbody&&subForm&&subTbody.closest('#main-content')){
+    // sub-cronograma está ativo
+    const el=subForm.closest('.gantt-wrap')||subForm;
+    el.scrollIntoView&&el.scrollIntoView({behavior:'smooth',block:'end'});
+    setTimeout(()=>{subForm.classList.add('open');const t=document.getElementById('scf-task');if(t){t.focus();t.scrollIntoView&&t.scrollIntoView({behavior:'smooth',block:'nearest'});}},250);
     return;
   }
-  const pid=session.projId;if(!pid)return;
-  cronScrollTop();
-  setTimeout(()=>openAddCronForm(pid),250);
+  // cronograma principal
+  const pid=session.projId||session._currentP&&session._currentP.id;if(!pid)return;
+  const mainForm=document.getElementById('gantt-form-'+pid);
+  if(mainForm){
+    const el=mainForm.closest('.gantt-wrap')||mainForm;
+    el.scrollIntoView&&el.scrollIntoView({behavior:'smooth',block:'end'});
+    setTimeout(()=>{mainForm.classList.add('open');const t=document.getElementById('gf-task');if(t){t.focus();t.scrollIntoView&&t.scrollIntoView({behavior:'smooth',block:'nearest'});}},250);
+  }
 }
+
 function cronToggleFullscreen(){
-  const el=document.documentElement;
   const btn=document.getElementById('btn-cron-fs');
-  if(!document.fullscreenElement){
-    el.requestFullscreen&&el.requestFullscreen();
+  const sidebar=document.querySelector('.sidebar');
+  const topbar=document.querySelector('.topbar');
+  const isFs=document.body.classList.contains('cron-fullscreen');
+  if(!isFs){
+    document.body.classList.add('cron-fullscreen');
     if(btn) btn.textContent='✕ Sair tela cheia';
   } else {
-    document.exitFullscreen&&document.exitFullscreen();
+    document.body.classList.remove('cron-fullscreen');
     if(btn) btn.textContent='⛶ Tela cheia';
   }
 }
-document.addEventListener('fullscreenchange',function(){
-  const btn=document.getElementById('btn-cron-fs');
-  if(btn) btn.textContent=document.fullscreenElement?'✕ Sair tela cheia':'⛶ Tela cheia';
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&document.body.classList.contains('cron-fullscreen')){
+    document.body.classList.remove('cron-fullscreen');
+    const btn=document.getElementById('btn-cron-fs');
+    if(btn) btn.textContent='⛶ Tela cheia';
+  }
 });
 function showCronTopbarBtns(){
   ['btn-cron-top','btn-cron-add','btn-cron-fs'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-flex';});
 }
 function hideCronTopbarBtns(){
   ['btn-cron-top','btn-cron-add','btn-cron-fs'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  document.body.classList.remove('cron-fullscreen');
+  const btn=document.getElementById('btn-cron-fs');
+  if(btn) btn.textContent='⛶ Tela cheia';
 }
 
 // ── renderCronRows filter injection ─────────────────────
