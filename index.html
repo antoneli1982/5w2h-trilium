@@ -231,15 +231,29 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
 .lvl-danger.on{background:#ff3333!important;color:#fff!important;border-color:#ff3333!important}
 
 /* ── SPECS V2 ── */
-#specs-v2{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);overflow:hidden;min-height:0}
-.sv2-col{background:var(--bg);padding:20px 22px;display:flex;flex-direction:column;gap:14px;overflow-y:auto}
+#specs-v2{flex:1;display:grid;grid-template-columns:38% 62%;gap:1px;background:var(--border);overflow:hidden;min-height:0}
+.sv2-col{background:var(--bg);padding:22px 26px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
 .sv2-col::-webkit-scrollbar{width:2px}
 .sv2-col::-webkit-scrollbar-thumb{background:var(--dim)}
 .sv2-title{font-size:11px;font-weight:700;color:var(--y);letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border)}
 .sv2-icon{font-size:16px}
-.sv2-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.sv2-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:18px;display:flex;flex-direction:column;gap:14px}
 .sv2-card-main{flex:1}
 .sv2-note{font-size:9px;color:var(--dim);line-height:1.6;border-top:1px solid var(--border);padding-top:10px}
+
+/* mini resumo de capacidade na col do corredor */
+.mini-cap{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.mini-cap-title{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
+.mc-row{display:grid;grid-template-columns:70px 1fr 60px;align-items:center;gap:10px;font-size:10px}
+.mc-row .mc-h{color:var(--muted);font-weight:600}
+.mc-row .mc-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden;position:relative}
+.mc-row .mc-bar i{display:block;height:100%;border-radius:3px;animation:mcGrow 1.2s cubic-bezier(.22,1,.36,1) both}
+@keyframes mcGrow{from{width:0 !important}}
+.mc-row .mc-kg{text-align:right;font-weight:900;color:var(--txt);font-size:11px}
+.mc-row.mc-green .mc-kg{color:#7fd971}
+.mc-row.mc-lime .mc-kg{color:#c7df60}
+.mc-row.mc-orange .mc-kg{color:#ffaa33}
+.mc-row.mc-red .mc-kg{color:#ff5a3a}
 
 /* capacity table */
 .cap-table{display:flex;flex-direction:column;gap:6px}
@@ -261,37 +275,72 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
 .ct-badge{background:#ff3333;color:#fff;font-size:7px;font-weight:900;padding:1px 5px;border-radius:3px;letter-spacing:1px}
 
 /* corridor visual */
-.corridor-visual{display:flex;align-items:stretch;gap:0;height:90px;border-radius:6px;overflow:hidden;border:1px solid var(--border)}
-.corr-rack{width:28px;background:repeating-linear-gradient(180deg,var(--y) 0px,var(--y) 6px,transparent 6px,transparent 18px);opacity:.4}
-.corr-space{flex:1;background:rgba(245,194,0,.03);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
-.corr-arrow{font-size:18px;color:var(--y)}
-.corr-dim{font-size:20px;font-weight:900;color:var(--y);line-height:1}
-.corr-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-.corr-fork{font-size:16px;position:absolute;bottom:6px;right:12px;opacity:.6}
+.corridor-visual{display:flex;align-items:stretch;gap:0;height:160px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:linear-gradient(180deg,#0c0c0c 0%,#111 100%);position:relative}
+.corr-rack{width:34px;background:repeating-linear-gradient(180deg,var(--y) 0px,var(--y) 8px,transparent 8px,transparent 22px);opacity:.42}
+.corr-space{flex:1;background:rgba(245,194,0,.03);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative}
+.corr-arrow{font-size:22px;color:var(--y);letter-spacing:-2px}
+.corr-dim{font-size:30px;font-weight:900;color:var(--y);line-height:1;letter-spacing:-1px}
+.corr-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px}
+.corr-fork{font-size:22px;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);opacity:.85;animation:corrSlide 6s ease-in-out infinite}
+@keyframes corrSlide{0%,100%{transform:translateX(-90%)}50%{transform:translateX(90%)}}
 .dim-list{display:flex;flex-direction:column;gap:0}
-.dim-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.dim-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
 .dim-row:last-child{border:none}
 .dim-name{color:var(--muted)}
-.dim-val{color:var(--txt);font-weight:700;font-size:12px}
+.dim-val{color:var(--txt);font-weight:700;font-size:13px}
 
 /* care items */
-.care-card{overflow-y:auto}
+.care-card{overflow-y:auto;gap:12px !important;padding:14px !important}
 .care-card::-webkit-scrollbar{width:2px}
 .care-card::-webkit-scrollbar-thumb{background:var(--dim)}
-.care-item{display:flex;gap:12px;padding:10px 12px;border-radius:6px;align-items:flex-start}
-.care-critical{background:rgba(255,40,40,.08);border:1px solid rgba(255,60,60,.25)}
-.care-warn{background:rgba(255,150,30,.07);border:1px solid rgba(255,150,30,.2)}
-.care-info{background:rgba(245,194,0,.05);border:1px solid rgba(245,194,0,.12)}
-.care-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0;margin-top:1px}
-.care-critical .care-num{background:#ff3333;color:#fff}
+.care-item{display:grid;grid-template-columns:30px 120px 1fr;gap:14px;padding:14px 16px;border-radius:8px;align-items:center;transition:transform .3s,box-shadow .3s}
+.care-item:hover{transform:translateX(3px)}
+.care-warn{background:rgba(255,150,30,.07);border:1px solid rgba(255,150,30,.22)}
+.care-info{background:rgba(245,194,0,.05);border:1px solid rgba(245,194,0,.15)}
+.care-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;align-self:start;margin-top:2px}
 .care-warn .care-num{background:#ff9922;color:#000}
 .care-info .care-num{background:var(--y);color:#000}
-.care-body{flex:1}
-.care-body strong{display:block;font-size:11px;font-weight:700;margin-bottom:3px;line-height:1.3}
-.care-critical .care-body strong{color:#ff6666}
+.care-anim{width:120px;height:80px;background:rgba(0,0,0,.35);border-radius:6px;border:1px solid rgba(255,255,255,.04);overflow:hidden;position:relative;flex-shrink:0}
+.care-anim svg{width:100%;height:100%;display:block}
+.care-body{flex:1;min-width:0}
+.care-body strong{display:block;font-size:14px;font-weight:700;margin-bottom:5px;line-height:1.25}
 .care-warn .care-body strong{color:#ffbb44}
 .care-info .care-body strong{color:var(--y)}
-.care-body p{font-size:10px;color:var(--muted);line-height:1.6;margin:0}
+.care-body p{font-size:12px;color:#bdbdbd;line-height:1.55;margin:0}
+
+/* ═══ SVG ANIM: GUIA DE PALLET ═══ */
+.anim-guide .pallet-body{animation:guideShake 2.8s ease-in-out infinite;transform-origin:center;transform-box:fill-box}
+@keyframes guideShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+.anim-guide .guide-rail{animation:guidePulse 2.8s ease-in-out infinite}
+@keyframes guidePulse{0%,100%{opacity:.6;stroke-width:2.5}50%{opacity:1;stroke-width:3.5}}
+
+/* ═══ SVG ANIM: PISO DESNIVELADO ═══ */
+.anim-floor .fork-body{animation:floorRock 2.4s ease-in-out infinite;transform-origin:center bottom;transform-box:fill-box}
+@keyframes floorRock{0%,100%{transform:rotate(-2.5deg) translateY(-1px)}50%{transform:rotate(2.5deg) translateY(1px)}}
+.anim-floor .floor-waves path{stroke-dasharray:120;stroke-dashoffset:120;animation:floorDash 3s linear infinite}
+@keyframes floorDash{to{stroke-dashoffset:0}}
+
+/* ═══ SVG ANIM: CORREDOR LIVRE ═══ */
+.anim-clear .safety-ring{transform-origin:center;transform-box:fill-box;animation:safetyPulse 2s ease-out infinite}
+@keyframes safetyPulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(2);opacity:0}}
+.anim-clear .safety-ring.r2{animation-delay:.6s}
+.anim-clear .safety-ring.r3{animation-delay:1.2s}
+.anim-clear .person-x{animation:personBlink 1.4s ease-in-out infinite}
+@keyframes personBlink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ═══ SVG ANIM: TRAVAMENTO ═══ */
+.anim-lock .lock-clip{animation:clipSnap 2.6s ease-in-out infinite;transform-origin:left center;transform-box:fill-box}
+@keyframes clipSnap{0%,45%{transform:rotate(-28deg)}55%,100%{transform:rotate(0deg)}}
+.anim-lock .lock-spark{animation:lockSpark 2.6s ease-out infinite;transform-origin:center;transform-box:fill-box}
+@keyframes lockSpark{0%,50%{opacity:0;transform:scale(.4)}55%{opacity:1;transform:scale(1)}70%,100%{opacity:0;transform:scale(1.6)}}
+
+/* ═══ SVG ANIM: ENGENHEIRO (SELO) ═══ */
+.anim-seal .seal-ring{animation:sealSpin 10s linear infinite;transform-origin:center;transform-box:fill-box}
+@keyframes sealSpin{to{transform:rotate(360deg)}}
+.anim-seal .seal-check{stroke-dasharray:40;stroke-dashoffset:40;animation:sealCheck 2.4s ease-in-out infinite}
+@keyframes sealCheck{0%,20%{stroke-dashoffset:40}50%,100%{stroke-dashoffset:0}}
+.anim-seal .seal-glow{animation:sealGlow 2.4s ease-in-out infinite}
+@keyframes sealGlow{0%,100%{opacity:.4}50%{opacity:1}}
 
 /* ════ RÉGUA LATERAL ════ */
 #ruler-wrap{
@@ -778,16 +827,18 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
   #specs-v2{grid-template-columns:1fr;grid-template-rows:auto;overflow-y:auto;gap:0}
   .sv2-col{padding:16px 16px 12px;gap:10px;overflow-y:visible}
   .sv2-title{font-size:10px;padding-bottom:8px;margin-bottom:2px}
-  .ct-h{font-size:10px}
-  .ct-kg{font-size:12px}
-  .corridor-visual{height:70px}
-  .corr-dim{font-size:16px}
-  .dim-row{padding:6px 0;font-size:10px}
-  .dim-val{font-size:11px}
-  .care-item{padding:8px 10px;gap:8px}
-  .care-body strong{font-size:10px}
-  .care-body p{font-size:9px}
-  .care-num{width:20px;height:20px;font-size:8px}
+  .corridor-visual{height:110px}
+  .corr-dim{font-size:22px}
+  .dim-row{padding:7px 0;font-size:11px}
+  .dim-val{font-size:12px}
+  .mc-row{grid-template-columns:54px 1fr 52px;font-size:9px}
+  .mc-row .mc-kg{font-size:10px}
+  .care-card{padding:10px !important;gap:8px !important}
+  .care-item{grid-template-columns:24px 80px 1fr;gap:10px;padding:10px 12px}
+  .care-anim{width:80px;height:56px}
+  .care-body strong{font-size:12px}
+  .care-body p{font-size:11px;line-height:1.5}
+  .care-num{width:24px;height:24px;font-size:9px}
   .sv2-note{font-size:8px}
 
   /* ── BARRAS INFERIORES ── */
@@ -824,7 +875,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
   #tour-panel{width:260px;max-height:unset;height:100%;flex-direction:column}
   #pal-body{flex-direction:row}
   #pal-panel{width:240px;max-height:unset;height:100%}
-  #specs-v2{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow-y:auto}
+  #specs-v2{grid-template-columns:38% 62%;grid-template-rows:1fr;overflow-y:auto}
 }
 
 </style>
@@ -1098,81 +1149,25 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
 <section class="slide" id="s3">
   <div class="s-header">
     <img class="s-header-logo" src="data:image/png;base64,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" alt="">
-    <span class="s-header-title">Capacidade · Corredor · Cuidados na Elevação</span>
+    <span class="s-header-title">Corredor · Cuidados na Elevação a 5 m</span>
     <span class="s-header-tag">5 m — SISTEMA SELETIVO</span>
   </div>
 
   <div id="specs-v2">
 
-    <!-- COL 1: PESO POR ALTURA -->
-    <div class="sv2-col">
-      <div class="sv2-title">
-        <span class="sv2-icon">📊</span>
-        Capacidade por Altura
-      </div>
-      <div class="sv2-card sv2-card-main">
-        <div class="cap-table">
-          <div class="ct-header">
-            <span>Altura de elevação</span>
-            <span>Capacidade</span>
-          </div>
-          <div class="ct-row ct-green">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:100%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">até 2.900 mm</span>
-              <span class="ct-kg">1.600 kg</span>
-            </div>
-          </div>
-          <div class="ct-row ct-lime">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:81%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">3.500 mm</span>
-              <span class="ct-kg">1.300 kg</span>
-            </div>
-          </div>
-          <div class="ct-row ct-orange">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:69%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">4.000 mm</span>
-              <span class="ct-kg">1.100 kg</span>
-            </div>
-          </div>
-          <div class="ct-row ct-orange">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:56%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">4.500 mm</span>
-              <span class="ct-kg">900 kg</span>
-            </div>
-          </div>
-          <div class="ct-row ct-red">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:47%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">4.900 mm</span>
-              <span class="ct-kg ct-red-txt">750 kg</span>
-            </div>
-          </div>
-          <div class="ct-row ct-red">
-            <div class="ct-bar-wrap"><div class="ct-bar" style="width:38%"></div></div>
-            <div class="ct-data">
-              <span class="ct-h">5.400 mm <span class="ct-badge">LIMITE</span></span>
-              <span class="ct-kg ct-red-txt">600 kg</span>
-            </div>
-          </div>
-        </div>
-        <div class="sv2-note">
-          Plaqueta oficial do fabricante — Centro de Carga 600 mm.<br>
-          Nunca exceder a capacidade nominal por altura.
-        </div>
-      </div>
-    </div>
-
-    <!-- COL 2: CORREDOR -->
+    <!-- ══════════════════════════════════════════════════════
+         COL 1: CORREDOR + MINI RESUMO DE CAPACIDADE
+         (tabela completa de capacidade foi removida — redundante
+          com a régua do slide anterior. Aqui fica apenas um
+          resumo visual de 4 faixas críticas).
+    ══════════════════════════════════════════════════════ -->
     <div class="sv2-col">
       <div class="sv2-title">
         <span class="sv2-icon">↔</span>
         Dimensões do Corredor
       </div>
-      <div class="sv2-card sv2-card-main" style="flex:1">
+
+      <div class="sv2-card sv2-card-main">
         <div class="corridor-visual">
           <div class="corr-rack left"></div>
           <div class="corr-space">
@@ -1183,6 +1178,7 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
           </div>
           <div class="corr-rack right"></div>
         </div>
+
         <div class="dim-list">
           <div class="dim-row">
             <span class="dim-name">Corredor mínimo</span>
@@ -1201,62 +1197,205 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Poppins',sans-seri
             <span class="dim-val">5.000 mm</span>
           </div>
         </div>
+
+        <!-- Mini-resumo visual de capacidade por altura -->
+        <div class="mini-cap">
+          <div class="mini-cap-title">Capacidade por altura · resumo</div>
+          <div class="mc-row mc-green">
+            <span class="mc-h">até 2,9 m</span>
+            <span class="mc-bar"><i style="width:100%;background:#44cc44"></i></span>
+            <span class="mc-kg">1.600 kg</span>
+          </div>
+          <div class="mc-row mc-lime">
+            <span class="mc-h">3,5 m</span>
+            <span class="mc-bar"><i style="width:81%;background:#88cc22"></i></span>
+            <span class="mc-kg">1.300 kg</span>
+          </div>
+          <div class="mc-row mc-orange">
+            <span class="mc-h">4,5 m</span>
+            <span class="mc-bar"><i style="width:56%;background:#ffaa22"></i></span>
+            <span class="mc-kg">900 kg</span>
+          </div>
+          <div class="mc-row mc-red">
+            <span class="mc-h">5,4 m ⚠</span>
+            <span class="mc-bar"><i style="width:38%;background:#ff5522"></i></span>
+            <span class="mc-kg">600 kg</span>
+          </div>
+        </div>
+
+        <div class="sv2-note">
+          Valores conforme plaqueta oficial do fabricante — Centro de Carga 600 mm.
+          Nunca exceder a capacidade nominal por altura.
+        </div>
       </div>
     </div>
 
-    <!-- COL 3: CUIDADOS ELEVAÇÃO 5M -->
+    <!-- ══════════════════════════════════════════════════════
+         COL 2: CUIDADOS NA ELEVAÇÃO A 5 M
+         Cada cuidado agora tem uma animação SVG à esquerda
+         ilustrando a situação. Fonte ampliada para leitura.
+         Item "Limite 600 kg a 5,4 m" removido — já representado
+         no mini-resumo ao lado e na régua do slide anterior.
+    ══════════════════════════════════════════════════════ -->
     <div class="sv2-col">
       <div class="sv2-title">
         <span class="sv2-icon">⚠</span>
         Cuidados na Elevação a 5 m
       </div>
-      <div class="sv2-card care-card" style="flex:1;display:flex;flex-direction:column;gap:10px">
+      <div class="sv2-card care-card" style="flex:1">
 
-        <div class="care-item care-critical">
-          <div class="care-num">01</div>
-          <div class="care-body">
-            <strong>Limite de 600 kg a 5,4 m</strong>
-            <p>A capacidade da paleteira reduz progressivamente com a altura. Até 2,9 m o equipamento opera com 1.600 kg (capacidade total). A 5,4 m (altura máxima), a capacidade cai para 600 kg. Inclua o peso do pallet (~25 kg). Valores conforme plaqueta do fabricante — C.C. 600 mm.</p>
-          </div>
-        </div>
-
+        <!-- ─── 01 · GUIA DE PALLET ─── -->
         <div class="care-item care-warn">
-          <div class="care-num">02</div>
+          <div class="care-num">01</div>
+          <div class="care-anim">
+            <svg class="anim-guide" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <!-- garfos -->
+              <rect x="10" y="52" width="95" height="3" fill="#888"/>
+              <rect x="14" y="45" width="4" height="12" fill="#666"/>
+              <rect x="98" y="45" width="4" height="12" fill="#666"/>
+              <!-- guia (trilhos amarelos) -->
+              <line class="guide-rail" x1="18" y1="30" x2="100" y2="30" stroke="#F5C200" stroke-width="3" stroke-linecap="round"/>
+              <line class="guide-rail" x1="18" y1="48" x2="100" y2="48" stroke="#F5C200" stroke-width="3" stroke-linecap="round"/>
+              <!-- pallet -->
+              <g class="pallet-body">
+                <rect x="30" y="32" width="60" height="14" rx="1" fill="#8a6a3a" stroke="#6b4f25" stroke-width="1"/>
+                <line x1="35" y1="32" x2="35" y2="46" stroke="#6b4f25" stroke-width=".8"/>
+                <line x1="60" y1="32" x2="60" y2="46" stroke="#6b4f25" stroke-width=".8"/>
+                <line x1="85" y1="32" x2="85" y2="46" stroke="#6b4f25" stroke-width=".8"/>
+              </g>
+              <!-- setas de contenção -->
+              <path d="M 14 39 L 22 39 L 19 36 M 22 39 L 19 42" stroke="#F5C200" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <path d="M 106 39 L 98 39 L 101 36 M 98 39 L 101 42" stroke="#F5C200" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <!-- base -->
+              <line x1="5" y1="70" x2="115" y2="70" stroke="#333" stroke-width="1"/>
+            </svg>
+          </div>
           <div class="care-body">
             <strong>Guia de pallet obrigatório</strong>
             <p>Sem guia instalado, o pallet pode deslocar durante a manobra. Risco de queda a partir de 2 m de altura.</p>
           </div>
         </div>
 
+        <!-- ─── 02 · PISO NIVELADO ─── -->
         <div class="care-item care-warn">
-          <div class="care-num">03</div>
+          <div class="care-num">02</div>
+          <div class="care-anim">
+            <svg class="anim-floor" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <!-- paleteira elevada oscilando -->
+              <g class="fork-body">
+                <!-- coluna -->
+                <rect x="58" y="18" width="4" height="38" fill="#555"/>
+                <!-- garfo -->
+                <rect x="38" y="20" width="44" height="3" fill="#888"/>
+                <!-- pallet -->
+                <rect x="42" y="10" width="36" height="10" fill="#8a6a3a"/>
+                <!-- base -->
+                <rect x="50" y="54" width="22" height="8" rx="1" fill="#444"/>
+                <circle cx="54" cy="64" r="3" fill="#222" stroke="#555" stroke-width="1"/>
+                <circle cx="68" cy="64" r="3" fill="#222" stroke="#555" stroke-width="1"/>
+              </g>
+              <!-- piso desnivelado (ondulado) -->
+              <g class="floor-waves">
+                <path d="M 0 72 Q 15 66, 30 72 T 60 72 T 90 72 T 120 72" stroke="#F5C200" stroke-width="1.8" fill="none" opacity=".75"/>
+                <path d="M 0 76 Q 15 70, 30 76 T 60 76 T 90 76 T 120 76" stroke="#ff9922" stroke-width="1.2" fill="none" opacity=".5"/>
+              </g>
+              <!-- marcadores de oscilação -->
+              <text x="8" y="14" fill="#ffbb44" font-size="8" font-family="Poppins" font-weight="700">↕ OSCILA</text>
+            </svg>
+          </div>
           <div class="care-body">
             <strong>Piso nivelado e desempenado</strong>
             <p>Desníveis causam oscilação da paleteira em altura, comprometendo o posicionamento do pallet no berço.</p>
           </div>
         </div>
 
+        <!-- ─── 03 · CORREDOR LIVRE ─── -->
         <div class="care-item care-info">
-          <div class="care-num">04</div>
+          <div class="care-num">03</div>
+          <div class="care-anim">
+            <svg class="anim-clear" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <!-- racks laterais (vista superior) -->
+              <rect x="0" y="10" width="18" height="60" fill="#F5C200" opacity=".25"/>
+              <rect x="102" y="10" width="18" height="60" fill="#F5C200" opacity=".25"/>
+              <!-- linhas do corredor -->
+              <line x1="18" y1="12" x2="18" y2="68" stroke="#F5C200" stroke-width=".8" stroke-dasharray="3 3" opacity=".5"/>
+              <line x1="102" y1="12" x2="102" y2="68" stroke="#F5C200" stroke-width=".8" stroke-dasharray="3 3" opacity=".5"/>
+              <!-- paleteira no centro (top view) -->
+              <rect x="52" y="32" width="16" height="22" rx="2" fill="#555" stroke="#888" stroke-width="1"/>
+              <rect x="50" y="24" width="20" height="8" fill="#8a6a3a"/>
+              <!-- anéis de segurança pulsando -->
+              <circle class="safety-ring" cx="60" cy="43" r="10" fill="none" stroke="#F5C200" stroke-width="1.5"/>
+              <circle class="safety-ring r2" cx="60" cy="43" r="10" fill="none" stroke="#F5C200" stroke-width="1.5"/>
+              <circle class="safety-ring r3" cx="60" cy="43" r="10" fill="none" stroke="#F5C200" stroke-width="1.5"/>
+              <!-- pessoa na zona proibida (com X) -->
+              <g class="person-x">
+                <circle cx="30" cy="58" r="3" fill="#ff5555"/>
+                <rect x="28.5" y="61" width="3" height="7" fill="#ff5555"/>
+                <line x1="24" y1="52" x2="36" y2="64" stroke="#ff3333" stroke-width="2" stroke-linecap="round"/>
+                <line x1="36" y1="52" x2="24" y2="64" stroke="#ff3333" stroke-width="2" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </div>
           <div class="care-body">
             <strong>Corredor livre durante operação</strong>
             <p>Mantenha 2.800 mm limpos. Nenhuma pessoa deve permanecer na área de movimentação enquanto a paleteira operar acima de 2 m.</p>
           </div>
         </div>
 
+        <!-- ─── 04 · TRAVAMENTO DO BERÇO ─── -->
         <div class="care-item care-info">
-          <div class="care-num">05</div>
+          <div class="care-num">04</div>
+          <div class="care-anim">
+            <svg class="anim-lock" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <!-- coluna vertical (frame) -->
+              <rect x="22" y="8" width="12" height="64" fill="#3a3a3a" stroke="#555" stroke-width="1"/>
+              <!-- furos da coluna -->
+              <circle cx="28" cy="22" r="1.5" fill="#111"/>
+              <circle cx="28" cy="40" r="1.5" fill="#111"/>
+              <circle cx="28" cy="58" r="1.5" fill="#111"/>
+              <!-- longarina horizontal -->
+              <rect x="34" y="36" width="72" height="8" fill="#F5C200" opacity=".85"/>
+              <rect x="34" y="36" width="72" height="8" fill="none" stroke="#8a6a10" stroke-width="1"/>
+              <!-- clip M12 (travando) -->
+              <g class="lock-clip">
+                <rect x="34" y="34" width="14" height="12" rx="2" fill="#ff3333" stroke="#aa0000" stroke-width="1"/>
+                <rect x="38" y="37" width="6" height="6" fill="#880000"/>
+              </g>
+              <!-- faísca de travamento -->
+              <g class="lock-spark" transform="translate(42 40)">
+                <path d="M 0 -6 L 2 -1 L 7 0 L 2 1 L 0 6 L -2 1 L -7 0 L -2 -1 Z" fill="#F5C200"/>
+              </g>
+              <!-- texto M12 -->
+              <text x="70" y="28" fill="#F5C200" font-size="8" font-family="Poppins" font-weight="700" letter-spacing=".5">M12 ✓</text>
+            </svg>
+          </div>
           <div class="care-body">
             <strong>Verificar travamento do berço</strong>
             <p>Antes de elevar, confirmar que os conectores (clips M12) estão corretamente travados em todos os níveis do frame.</p>
           </div>
         </div>
 
-        <div class="care-item care-eng">
-          <div class="care-num" style="background:#F5C200;color:#000;font-size:8px">ENG</div>
+        <!-- ─── ENG · ACOMPANHAMENTO ─── -->
+        <div class="care-item care-info" style="background:rgba(245,194,0,.07);border:1px solid rgba(245,194,0,.3)">
+          <div class="care-num" style="background:#F5C200;color:#000;font-size:9px">ENG</div>
+          <div class="care-anim">
+            <svg class="anim-seal" viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg">
+              <!-- anel externo rotacionando -->
+              <g class="seal-ring">
+                <circle cx="60" cy="40" r="28" fill="none" stroke="#F5C200" stroke-width="1" stroke-dasharray="2 3" opacity=".55"/>
+              </g>
+              <!-- selo central -->
+              <circle class="seal-glow" cx="60" cy="40" r="22" fill="none" stroke="#F5C200" stroke-width="2"/>
+              <circle cx="60" cy="40" r="18" fill="rgba(245,194,0,.08)" stroke="#F5C200" stroke-width=".8"/>
+              <!-- check -->
+              <path class="seal-check" d="M 50 41 L 57 48 L 71 34" fill="none" stroke="#F5C200" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- textos normativos -->
+              <text x="60" y="72" fill="#F5C200" font-size="7" font-family="Poppins" font-weight="700" text-anchor="middle" letter-spacing="1">NR-12 · NBR 15524</text>
+            </svg>
+          </div>
           <div class="care-body">
-            <strong>Acompanhamento de Engenheiro de Produção</strong>
-            <p>Para análise de carga, produtividade e dimensionamento do sistema, é <strong>obrigatório</strong> o acompanhamento de um Engenheiro de Produção habilitado, conforme NR-12 e NBR 15524.</p>
+            <strong style="color:#F5C200">Acompanhamento de Engenheiro de Produção</strong>
+            <p>Para análise de carga, produtividade e dimensionamento do sistema, é <strong style="color:#fff;display:inline">obrigatório</strong> o acompanhamento de um Engenheiro de Produção habilitado, conforme NR-12 e NBR 15524.</p>
           </div>
         </div>
 
